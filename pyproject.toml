@@ -26,3 +26,4 @@ dependencies = { file = ["requirements.txt"] }
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
 pythonpath = ["src", "examples"]
+env = ['DRIFT_MONITOR_URL = "http://localhost:5000"']
