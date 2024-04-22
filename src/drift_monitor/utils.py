@@ -8,7 +8,7 @@ from drift_monitor.config import settings
 def create_drift(model, token):
     """Create a drift run on the drift monitor server."""
     response = requests.post(
-        settings.DRIFT_MONITOR_URL,
+        url=f"{settings.DRIFT_MONITOR_URL}/drift",
         headers={"Authorization": f"Bearer {token}"},
         json={"model_id": model, "status": "Running"},
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
@@ -20,7 +20,7 @@ def create_drift(model, token):
 def complete_drift(drift, token):
     """Complete a drift run on the drift monitor server."""
     response = requests.put(
-        f"{settings.DRIFT_MONITOR_URL}/{drift['id']}",
+        url=f"{settings.DRIFT_MONITOR_URL}/drift/{drift['id']}",
         headers={"Authorization": f"Bearer {token}"},
         json={**drift, "status": "Completed"},
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
@@ -31,7 +31,7 @@ def complete_drift(drift, token):
 def fail_drift(drift, token):
     """Fail a drift run on the drift monitor server."""
     response = requests.put(
-        f"{settings.DRIFT_MONITOR_URL}/{drift['id']}",
+        url=f"{settings.DRIFT_MONITOR_URL}/drift/{drift['id']}",
         headers={"Authorization": f"Bearer {token}"},
         json={**drift, "status": "Failed"},
         timeout=settings.DRIFT_MONITOR_TIMEOUT,

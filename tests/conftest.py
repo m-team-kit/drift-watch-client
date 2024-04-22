@@ -2,48 +2,89 @@
 
 # pylint: disable=redefined-outer-name
 
-from pytest import fixture
-from drift_monitor import DriftMonitor
+import os
 from unittest import mock
+import uuid
+
+from pytest import fixture
+
+from drift_monitor import DriftMonitor
 
 
-@fixture(scope="package")
-def mock_server(request):
-    """Patch request module to mock a server."""
-    json = request.param if hasattr(request, "param") else {}
-    response = mock.MagicMock(json=lambda: json)
-    server = mock.MagicMock(return_value=response)
-    return server
+@fixture(scope="session")
+def endpoint():
+    """Return the server URL."""
+    return os.environ["DRIFT_MONITOR_URL"]
 
 
-@fixture(scope="package")
-def patch_requests(mock_server):
-    """Patch requests module."""
+@fixture(scope="session")
+def token(request):
+    """Return the server token."""
+    token = request.param if hasattr(request, "param") else "1234"
+    return token
+
+
+@fixture(scope="function")
+def request_mock():
+    """Patch requests module with MagicMocks."""
     with mock.patch("drift_monitor.utils.requests") as requests:
-        requests.return_value = mock_server
         yield requests
 
 
-@fixture(scope="module")
-def monitor():
+@fixture(scope="function")
+def monitor(token):
     """Return a DriftMonitor instance."""
-    return DriftMonitor("model_1", token="1234")
+    return DriftMonitor("model_1", token)
 
 
-@fixture(scope="module")
+@fixture(scope="function", autouse=True)
+def post_response(request, request_mock, monitor):
+    """Return a POST response and patch it in request_mock."""
+    if hasattr(request, "param"):
+        json = request.param
+    else:
+        json = {
+            "id": f"{uuid.uuid4()}",
+            "datetime": "2021-01-01T00:00:00Z",
+            "model_id": monitor.model_id,
+            "status": "Running",
+        }
+    request_mock.post.return_value = mock.MagicMock(json=lambda: json)
+    return json
+
+
+@fixture(scope="function")
 def with_context(monitor):
     """Opens a context for the monitor."""
     with monitor:
-        yield monitor
+        yield
 
 
-@fixture(scope="module")
+@fixture(scope="function")
+def after_context(monitor):
+    """Closes the context for the monitor."""
+    with monitor:
+        monitor.concept(True, {"threshold": 0.5})
+        monitor.data(True, {"threshold": 0.5})
+
+
+@fixture(scope="function")
+def error_context(monitor):
+    """Raise an error in the context for the monitor."""
+    try:
+        with monitor:
+            raise ValueError("An error occurred.")
+    except ValueError:
+        pass
+
+
+@fixture(scope="function")
 def with_concept_drift(monitor):
     """Add concept drift to the monitor."""
     monitor.concept(True, {"threshold": 0.5})
 
 
-@fixture(scope="module")
+@fixture(scope="function")
 def with_data_drift(monitor):
     """Add data drift to the monitor."""
     monitor.data(True, {"threshold": 0.5})
