@@ -3,6 +3,7 @@ This package contains the client code for the drift monitor service.
 """
 
 from drift_monitor import utils
+from drift_monitor.config import mytoken_server
 
 
 class DriftMonitor:
@@ -26,9 +27,9 @@ class DriftMonitor:
         ...    monitor.data(detected, detection_parameters)
     """
 
-    def __init__(self, model_id, token=None):
+    def __init__(self, model_id, token):
         self.model_id = model_id
-        self.token = token
+        self.at = mytoken_server.AccessToken.get(token)
         self.drift = None
 
     def concept(self, detected, parameters):
@@ -62,11 +63,11 @@ class DriftMonitor:
         self.drift["data_drift"] = data_drift
 
     def __enter__(self):
-        self.drift = utils.create_drift(self.model_id, self.token)
+        self.drift = utils.create_drift(self.model_id, self.at)
         return self
 
     def __exit__(self, exc_type, _exc_value, _traceback):
         if exc_type:
-            utils.fail_drift(self.drift, self.token)
+            utils.fail_drift(self.drift, self.at)
         else:
-            utils.complete_drift(self.drift, self.token)
+            utils.complete_drift(self.drift, self.at)
