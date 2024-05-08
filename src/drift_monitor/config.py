@@ -11,10 +11,13 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    DRIFT_MONITOR_URL: str
+    DRIFT_MONITOR_DOMAIN: str
     DRIFT_MONITOR_TIMEOUT: int = 10
 
+    DRIFT_MONITOR_MYTOKEN: str
     MYTOKEN_SERVER: str = "https://mytoken.data.kit.edu"
+
+    TESTING: bool = False
 
 
 # Initialize the settings object

@@ -3,7 +3,7 @@ This package contains the client code for the drift monitor service.
 """
 
 from drift_monitor import utils
-from drift_monitor.config import mytoken_server
+from drift_monitor.config import mytoken_server, settings
 
 
 class DriftMonitor:
@@ -18,6 +18,7 @@ class DriftMonitor:
     Args:
         model_id (str): The model ID to monitor.
         token (str): The token to authenticate with the server.
+            Defaults to the token in the settings.
 
     Example:
         >>> with DriftMonitor("model_1", token="123") as monitor:
@@ -27,7 +28,7 @@ class DriftMonitor:
         ...    monitor.data(detected, detection_parameters)
     """
 
-    def __init__(self, model_id, token):
+    def __init__(self, model_id, token=settings.DRIFT_MONITOR_MYTOKEN):
         self.model_id = model_id
         self.at = mytoken_server.AccessToken.get(token)
         self.drift = None
