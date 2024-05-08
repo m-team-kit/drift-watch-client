@@ -2,6 +2,7 @@
 This package contains the client code for the drift monitor service.
 """
 
+import requests
 from drift_monitor import utils
 from drift_monitor.config import mytoken_server, settings
 
@@ -72,3 +73,19 @@ class DriftMonitor:
             utils.fail_drift(self.drift, self.at)
         else:
             utils.complete_drift(self.drift, self.at)
+
+
+def register(accept_terms=False, token=settings.DRIFT_MONITOR_MYTOKEN):
+    """Registers the token user in the application database.
+    By using this function, you accept that the user derived from the token
+    will be registered in the application database and agree to the terms of
+    service.
+    """
+    if not accept_terms:
+        raise ValueError("You must accept the terms of service.")
+    try:
+        utils.register(mytoken_server.AccessToken.get(token))
+    except requests.HTTPError as error:
+        if error.response.status_code == 409:
+            return  # User already exists
+        raise error

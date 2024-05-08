@@ -35,9 +35,20 @@ def fail_drift(drift, token):
     """Fail a drift run on the drift monitor server."""
     _drift = {k: v for k, v in drift.items() if k != "id" and k != "datetime"}
     response = requests.put(
-        url=f"{settings.DRIFT_MONITOR_DOMAIN}/api/drift/{drift['id']}",
+        url=f"https://{settings.DRIFT_MONITOR_DOMAIN}/api/drift/{drift['id']}",
         headers={"Authorization": f"Bearer {token}"},
-        json={**drift, "job_status": "Failed"},
+        json={**_drift, "job_status": "Failed"},
+        timeout=settings.DRIFT_MONITOR_TIMEOUT,
+        verify=not settings.TESTING,
+    )
+    response.raise_for_status()
+
+
+def register(token):
+    """Registers the token user in the application database."""
+    response = requests.post(
+        url=f"https://{settings.DRIFT_MONITOR_DOMAIN}/api/user",
+        headers={"Authorization": f"Bearer {token}"},
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
