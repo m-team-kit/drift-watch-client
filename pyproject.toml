@@ -7,10 +7,10 @@
   description = "Drift monitoring client in Python."
   readme = "README.md"
   requires-python = ">=3.10"
-  license = { text = "GNU General Public License v3 (GPLv3)" }
+  license = { text = "MIT License" }
   classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
   ]
   dynamic = ["version", "dependencies"]
