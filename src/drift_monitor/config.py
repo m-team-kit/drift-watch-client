@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     DRIFT_MONITOR_TIMEOUT: int = 10
 
     DRIFT_MONITOR_MYTOKEN: str
-    MYTOKEN_SERVER: str = "https://mytoken.data.kit.edu"
+    MYTOKEN_SERVER: str = "https://mytok.eu"
 
     TESTING: bool = False
 
