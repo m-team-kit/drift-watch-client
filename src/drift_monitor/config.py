@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     )
 
     DRIFT_MONITOR_DOMAIN: str
+    DRIFT_MONITOR_API_VERSION: str = "v1"
     DRIFT_MONITOR_TIMEOUT: int = 10
 
     DRIFT_MONITOR_MYTOKEN: str
@@ -24,3 +25,7 @@ class Settings(BaseSettings):
 # Initialize the settings object
 settings = Settings()
 mytoken_server = MytokenServer(settings.MYTOKEN_SERVER)
+monitor_url = (
+    f"https://{settings.DRIFT_MONITOR_DOMAIN}"
+    f"/api/{settings.DRIFT_MONITOR_API_VERSION}"
+)
