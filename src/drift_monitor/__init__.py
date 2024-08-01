@@ -81,11 +81,12 @@ def register(accept_terms=False, token=settings.DRIFT_MONITOR_MYTOKEN):
     will be registered in the application database and agree to the terms of
     service.
     """
+    at = mytoken_server.AccessToken.get(token)
     if not accept_terms:
         raise ValueError("You must accept the terms of service.")
     try:
-        utils.register(mytoken_server.AccessToken.get(token))
+        utils.register(token=at)
     except requests.HTTPError as error:
         if error.response.status_code == 409:
-            return  # User already exists
+            utils.update_email(token=at)
         raise error
