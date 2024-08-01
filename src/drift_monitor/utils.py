@@ -53,3 +53,14 @@ def register(token):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
+
+
+def update_email(token):
+    """Update the email of the token user in the application database."""
+    response = requests.put(
+        url=f"{monitor_url}/user/self",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=settings.DRIFT_MONITOR_TIMEOUT,
+        verify=not settings.TESTING,
+    )
+    response.raise_for_status()
