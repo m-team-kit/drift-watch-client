@@ -2,10 +2,12 @@
 
 # pylint: disable=redefined-outer-name
 
+import datetime as dt
 import os
-from unittest import mock
 import uuid
+from unittest import mock
 
+import jwt
 from pytest import fixture
 
 from drift_monitor import DriftMonitor
@@ -20,8 +22,25 @@ def endpoint():
 @fixture(scope="session")
 def token(request):
     """Return the server token."""
-    token = request.param if hasattr(request, "param") else "1234"
+    if hasattr(request, "param") and request.param:
+        return request.param
+    now = dt.datetime.now(dt.timezone.utc).timestamp()
+    payload = {
+        "sub": "1234567890",
+        "name": "John Doe",
+        "iat": now,
+        "exp": now + 10000000,
+    }
+    token = jwt.encode(payload, "some_key", algorithm="HS256")
     return token
+
+
+@fixture(scope="session", autouse=True)
+def token_mock(token):
+    """Patch the access token with a MagicMock."""
+    with mock.patch("drift_monitor.utils.access_token") as access_token:
+        access_token.return_value = token
+        yield access_token
 
 
 @fixture(scope="function")
@@ -32,9 +51,9 @@ def request_mock():
 
 
 @fixture(scope="function")
-def monitor(token):
+def monitor():
     """Return a DriftMonitor instance."""
-    return DriftMonitor("model_1", token)
+    return DriftMonitor("experiment_1", "model_1")
 
 
 @fixture(scope="function", autouse=True)
@@ -46,7 +65,7 @@ def post_response(request, request_mock, monitor):
         json = {
             "id": f"{uuid.uuid4()}",
             "datetime": "2021-01-01T00:00:00Z",
-            "model_id": monitor.model_id,
+            "model_id": monitor._model_id,
             "status": "Running",
         }
     request_mock.post.return_value = mock.MagicMock(json=lambda: json)
