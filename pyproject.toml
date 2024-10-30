@@ -26,4 +26,8 @@
 [tool.pytest.ini_options]
   addopts    = ["--import-mode=importlib"]
   pythonpath = ["src", "examples"]
-  env        = ["TESTING=true", "DRIFT_MONITOR_URL=https://mock"]
+  env        = [
+    "TESTING=true", 
+    "DRIFT_MONITOR_URL=https://mock",
+    "DRIFT_MONITOR_MYTOKEN=mytoken_mock",
+  ]
