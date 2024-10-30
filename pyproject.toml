@@ -16,8 +16,8 @@
   dynamic = ["version", "dependencies"]
 
   [project.urls]
-    "Homepage"    = "https://codebase.helmholtz.cloud/m-team/ai/drift-monitoring-detector/-/tree/main"
-    "Bug Tracker" = "https://codebase.helmholtz.cloud/m-team/ai/drift-monitoring-detector/-/issues"
+    "Homepage"    = "https://github.com/m-team-kit/drift-watch-client"
+    "Bug Tracker" = "https://github.com/m-team-kit/drift-watch-client/issues"
 
 [tool.setuptools.dynamic]
   version      = { file = "src/drift_monitor/VERSION" }
