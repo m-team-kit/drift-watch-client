@@ -41,6 +41,13 @@ def token_mock(token):
         yield access_token
 
 
+@fixture(scope="module")
+def request_mock():
+    """Patch requests module with MagicMocks."""
+    with mock.patch("drift_monitor.utils.requests") as requests:
+        yield requests
+
+
 @fixture(scope="session")
 def experiment(request):
     """Return a new experiment."""
@@ -69,10 +76,3 @@ def drift(request):
     if hasattr(request, "param"):
         default_drift.update(request.param)
     return default_drift
-
-
-@fixture(scope="function")
-def request_mock():
-    """Patch requests module with MagicMocks."""
-    with mock.patch("drift_monitor.utils.requests") as requests:
-        yield requests

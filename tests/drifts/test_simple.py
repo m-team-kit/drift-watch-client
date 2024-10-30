@@ -7,16 +7,16 @@ import pytest
 from drift_monitor import DriftMonitor
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def mocks(request_mock, experiment, drift):
     """Mock the requests module."""
-    m = mock.MagicMock(json=lambda: [experiment])
+    m = mock.MagicMock(json=lambda: [experiment.copy()])
     request_mock.get.return_value = m
-    m = mock.MagicMock(json=lambda: drift)
+    m = mock.MagicMock(json=lambda: drift.copy())
     request_mock.post.return_value = m
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def create_drift(request_mock, experiment, drift):
     """Create a drift run on the drift monitor server."""
     with DriftMonitor(experiment["name"], drift["model"]) as monitor:
