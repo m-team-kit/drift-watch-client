@@ -9,11 +9,7 @@ def create_experiment(attributes):
     """Create a new experiment on the drift monitor server."""
     response = requests.post(
         url=f"{settings.monitor_url}/experiment",
-        headers={
-            "accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token()}",
-        },
+        headers={"Authorization": f"Bearer {access_token()}"},
         json=attributes,
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,

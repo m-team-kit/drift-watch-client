@@ -2,6 +2,14 @@
 
 import pytest
 
+from drift_monitor import DriftMonitor
+
+
+@pytest.fixture(scope="function")
+def monitor(request_mock, experiment, drift):
+    """Create a drift run on the drift monitor server."""
+    return DriftMonitor(experiment["name"], drift["model"])
+
 
 def test_concept_context(monitor):
     """Test the method concept raises out of context error."""
