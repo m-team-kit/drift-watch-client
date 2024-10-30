@@ -45,7 +45,8 @@ def test_running_drift(request_mock, endpoint, experiment, token):
 def test_completed_drift(request_mock, endpoint, experiment, token, drift):
     """Test the drift run was completed on the server."""
     assert request_mock.put.call_count == 1
-    url = f"{endpoint}/api/v1/experiment/{experiment['id']}/drift/{drift['id']}"
+    url = f"{endpoint}/api/v1/experiment/{experiment['id']}"
+    url += f"/drift/{drift['id']}"
     assert request_mock.put.call_args[1]["url"] == url
     assert request_mock.put.call_args[1]["headers"] == {
         "Authorization": f"Bearer {token}",
