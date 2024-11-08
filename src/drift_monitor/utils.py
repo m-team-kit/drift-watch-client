@@ -1,7 +1,7 @@
 """Utility functions for drift monitor."""
 
+import numpy as np
 import requests
-
 from drift_monitor.config import access_token, settings
 
 
@@ -93,3 +93,16 @@ def update_email():
         verify=not settings.TESTING,
     )
     response.raise_for_status()
+
+
+def convert_to_serializable(obj):
+    """Recursively convert objects to JSON serializable formats."""
+    if isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [convert_to_serializable(element) for element in obj]
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (np.generic, np.number)):
+        return obj.item()
+    return obj

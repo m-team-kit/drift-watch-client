@@ -45,6 +45,8 @@ class DriftMonitor:
         """
         if self._drift is None:
             raise RuntimeError("Drift monitor context not started.")
+        detected = bool(detected)  # Ensure correct serialization
+        parameters = utils.convert_to_serializable(parameters)
         concept_drift = {"drift": detected, "parameters": parameters}
         self._drift["concept_drift"] = concept_drift
 
@@ -60,6 +62,8 @@ class DriftMonitor:
         """
         if self._drift is None:
             raise RuntimeError("Drift monitor context not started.")
+        detected = bool(detected)  # Ensure correct serialization
+        parameters = utils.convert_to_serializable(parameters)
         data_drift = {"drift": detected, "parameters": parameters}
         self._drift["data_drift"] = data_drift
 
