@@ -133,3 +133,8 @@ dmypy.json
 
 # Secrets
 secrets
+
+# OpenAPI generator
+.openapi-generator/output
+.openapi-generator/specification.json
+.openapi-generator/openapitools.json
