@@ -1,5 +1,5 @@
 openapi-generator-cli generate \
     --generator-name python \
-    --input-spec specification.json \
+    --config .openapi-generator/config.json \
     --output . \
-    --config config.json
+    --input-spec specification.json
