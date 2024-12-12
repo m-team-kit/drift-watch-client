@@ -1,3 +1,4 @@
+twine
 black
 isort
 mypy
