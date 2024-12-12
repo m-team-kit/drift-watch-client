@@ -3,8 +3,8 @@
 # pylint: disable=redefined-outer-name
 
 import datetime as dt
+import json
 import os
-import uuid
 from unittest import mock
 
 import jwt
@@ -15,6 +15,26 @@ from pytest import fixture
 def endpoint():
     """Return the server URL."""
     return os.environ["DRIFT_MONITOR_URL"]
+
+
+@fixture(scope="session")
+def experiments():
+    """Load experiments from JSON file at tests/database."""
+    path = "tests/database/test-experiments.json"
+    return {exp["name"]: exp for exp in load_json(path)}
+
+
+@fixture(scope="session")
+def drifts(experiment_name):
+    """Load drifts from JSON file at tests/database."""
+    path = f"tests/database/test-drifts/{experiment_name}.json"
+    return {drift["_id"]: drift for drift in load_json(path)}
+
+
+def load_json(path):
+    """Load data from a JSON files at tests/database."""
+    with open(path, encoding="utf-8") as file:
+        return json.loads(_data := file.read())
 
 
 @fixture(scope="session")
@@ -36,7 +56,7 @@ def token(request):
 @fixture(scope="session", autouse=True)
 def token_mock(token):
     """Patch the access token with a MagicMock."""
-    with mock.patch("drift_monitor.utils.access_token") as access_token:
+    with mock.patch("drift_monitor.queries.access_token") as access_token:
         access_token.return_value = token
         yield access_token
 
@@ -44,35 +64,17 @@ def token_mock(token):
 @fixture(scope="module")
 def request_mock():
     """Patch requests module with MagicMocks."""
-    with mock.patch("drift_monitor.utils.requests") as requests:
+    with mock.patch("drift_monitor.queries.requests") as requests:
         yield requests
 
 
-@fixture(scope="session")
-def experiment(request):
-    """Return a new experiment."""
-    kwds = request.param if hasattr(request, "param") else {}
-    return {
-        "id": kwds.get("id", f"{uuid.uuid4()}"),
-        "created_ad": dt.datetime.now().isoformat(),
-        "name": kwds.get("name", "new_experiment"),
-        "description": kwds.get("description", "A new experiment."),
-        "public": kwds.get("public", False),
-        "permissions": kwds.get("permissions", {}),
-    }
+@fixture(scope="function")
+def experiment(experiment_name, experiments):
+    """Return a experiment from the database."""
+    return experiments[experiment_name]
 
 
-@fixture(scope="session")
-def drift(request):
-    """Return a new drift with parameters from request."""
-    default_drift = {
-        "id": str(uuid.uuid4()),
-        "created_at": dt.datetime.now().isoformat(),
-        "model": "model_1",
-        "job_status": "Running",
-        "concept_drift": {},
-        "data_drift": {},
-    }
-    if hasattr(request, "param"):
-        default_drift.update(request.param)
-    return default_drift
+@fixture(scope="function")
+def drift(drift_id, drifts):
+    """Return a drift from the database."""
+    return drifts[drift_id]
