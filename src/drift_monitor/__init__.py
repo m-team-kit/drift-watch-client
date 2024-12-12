@@ -4,7 +4,7 @@ This package contains the client code for the drift monitor service.
 
 import requests
 
-from drift_monitor import utils
+from drift_monitor import queries, utils
 
 
 class DriftMonitor:
@@ -68,14 +68,14 @@ class DriftMonitor:
         self._drift["data_drift"] = data_drift
 
     def __enter__(self):
-        self._drift = utils.create_drift(self.experiment, self._model_id)
+        self._drift = create_drift(self.experiment, self._model_id)
         return self
 
     def __exit__(self, exc_type, _exc_value, _traceback):
         if exc_type:
-            utils.fail_drift(self.experiment, self._drift)
+            fail_drift(self.experiment, self._drift)
         else:
-            utils.complete_drift(self.experiment, self._drift)
+            complete_drift(self.experiment, self._drift)
 
     @property
     def experiment_name(self):
@@ -85,7 +85,7 @@ class DriftMonitor:
     @experiment_name.setter
     def experiment_name(self, value):
         """Set the experiment name."""
-        self.__experiment = utils.get_experiment(value)
+        self.__experiment = find_experiment(value)
         if self.__experiment is None:
             raise ValueError("Experiment not found.")
 
@@ -104,12 +104,25 @@ def register(accept_terms=False):
     if not accept_terms:
         raise ValueError("You must accept the terms of service.")
     try:
-        utils.register()
+        queries.post_user()
     except requests.HTTPError as error:
         if error.response.status_code == 409:
-            utils.update_email()
+            queries.update_user()
             return  # User already registered
         raise error
+
+
+def find_experiment(experiment_name):
+    """Get an experiment from the drift monitor server.
+
+    Args:
+        experiment_name (str): The name of the experiment.
+
+    Returns:
+        dict: The experiment object or None if not found.
+    """
+    experiment, _ = queries.search_experiment({"name": experiment_name})
+    return experiment[0] if experiment else None
 
 
 def new_experiment(name, description, public=False, permissions=None):
@@ -126,15 +139,59 @@ def new_experiment(name, description, public=False, permissions=None):
     Returns:
         dict: The experiment object.
     """
-    experiment = {  # Create a new experiment object
+    attributes = {  # Create a new experiment object
         "name": name,
         "description": description,
         "public": public,
         "permissions": permissions if permissions else {},
     }
     try:
-        return utils.create_experiment(experiment)
+        return queries.post_experiment(attributes)
     except requests.HTTPError as error:
         if error.response.status_code == 409:
             raise ValueError("Experiment already exists.") from error
         raise error
+
+
+def create_drift(experiment, model_id):
+    """Create a new drift run on the drift monitor server.
+
+    Args:
+        experiment (dict): The experiment object.
+        model_id (str): The model ID to monitor.
+
+    Returns:
+        dict: The drift run object.
+    """
+    attributes = {"model_id": model_id, "job_status": "Running"}
+    return queries.post_drift(experiment, attributes)
+
+
+def fail_drift(experiment, drift):
+    """Fail a drift run on the drift monitor server.
+
+    Args:
+        experiment (dict): The experiment object.
+        drift (dict): The drift run object.
+
+    Returns:
+        dict: The updated drift run object.
+    """
+    _drift = {k: v for k, v in drift.items() if k not in {"id", "created_at"}}
+    attributes = {**_drift, "job_status": "Failed"}
+    return queries.put_drift(experiment, drift["id"], attributes)
+
+
+def complete_drift(experiment, drift):
+    """Complete a drift run on the drift monitor server.
+
+    Args:
+        experiment (dict): The experiment object.
+        drift (dict): The drift run object.
+
+    Returns:
+        dict: The updated drift run object.
+    """
+    _drift = {k: v for k, v in drift.items() if k not in {"id", "created_at"}}
+    attributes = {**_drift, "job_status": "Completed"}
+    return queries.put_drift(experiment, drift["id"], attributes)
