@@ -17,18 +17,18 @@ def endpoint():
     return os.environ["DRIFT_MONITOR_URL"]
 
 
-@fixture(scope="session")
+@fixture(scope="function")
 def experiments():
     """Load experiments from JSON file at tests/database."""
     path = "tests/database/test-experiments.json"
     return {exp["name"]: exp for exp in load_json(path)}
 
 
-@fixture(scope="session")
+@fixture(scope="function")
 def drifts(experiment_name):
     """Load drifts from JSON file at tests/database."""
     path = f"tests/database/test-drifts/{experiment_name}.json"
-    return {drift["_id"]: drift for drift in load_json(path)}
+    return {drift["id"]: drift for drift in load_json(path)}
 
 
 def load_json(path):
