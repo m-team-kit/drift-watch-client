@@ -18,14 +18,14 @@ def endpoint():
 
 
 @fixture(scope="function")
-def experiments():
+def db_experiments():
     """Load experiments from JSON file at tests/database."""
     path = "tests/database/test-experiments.json"
     return {exp["name"]: exp for exp in load_json(path)}
 
 
 @fixture(scope="function")
-def drifts(experiment_name):
+def db_drifts(experiment_name):
     """Load drifts from JSON file at tests/database."""
     path = f"tests/database/test-drifts/{experiment_name}.json"
     return {drift["id"]: drift for drift in load_json(path)}
@@ -69,12 +69,12 @@ def request_mock():
 
 
 @fixture(scope="function")
-def experiment(experiment_name, experiments):
+def db_experiment(experiment_name, db_experiments):
     """Return a experiment from the database."""
-    return experiments[experiment_name]
+    return db_experiments[experiment_name]
 
 
 @fixture(scope="function")
-def drift(drift_id, drifts):
+def db_drift(drift_id, db_drifts):
     """Return a drift from the database."""
-    return drifts[drift_id]
+    return db_drifts[drift_id]
