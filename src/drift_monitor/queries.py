@@ -2,8 +2,8 @@
 
 import requests
 
+from drift_monitor import models, schemas
 from drift_monitor.config import access_token, settings
-
 
 # Entitlements: API Methods to list, entitlements.
 
@@ -17,7 +17,7 @@ def get_entitlements():
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return response.json()["items"]
 
 
 # Experiments: API Methods to list, register, edit and remove experiments.
@@ -34,7 +34,10 @@ def search_experiment(query, page=1, page_size=10):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json(), response.headers["X-Pagination"]
+    return (
+        [models.Experiment(data) for data in response.json()],
+        response.headers["X-Pagination"],
+    )
 
 
 def post_experiment(attributes):
@@ -42,12 +45,12 @@ def post_experiment(attributes):
     response = requests.post(
         url=f"{settings.monitor_url}/experiment",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=attributes,
+        json=schemas.CreateExperiment().load(attributes),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Experiment(response.json())
 
 
 def get_experiment(experiment_id):
@@ -59,20 +62,20 @@ def get_experiment(experiment_id):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Experiment(response.json())
 
 
-def put_experiment(experiment_id, attributes):
+def put_experiment(experiment):
     """Update an experiment on the drift monitor server."""
     response = requests.put(
-        url=f"{settings.monitor_url}/experiment/{experiment_id}",
+        url=f"{settings.monitor_url}/experiment/{experiment.id}",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=attributes,
+        json=schemas.Experiment().dump(experiment),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Experiment(response.json())
 
 
 def delete_experiment(experiment_id):
@@ -84,7 +87,7 @@ def delete_experiment(experiment_id):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return None
 
 
 # Drifts: API Methods to list, create, complete and fail drift runs.
@@ -102,26 +105,29 @@ def search_drift(experiment, query, page=1, page_size=10):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json(), response.headers["X-Pagination"]
+    return (
+        [models.Drift(data) for data in response.json()],
+        response.headers["X-Pagination"],
+    )
 
 
 def post_drift(experiment, attributes):
     """Create a new drift run on the drift monitor server."""
-    exp_route = f"experiment/{experiment['id']}"
+    exp_route = f"experiment/{experiment.id}"
     response = requests.post(
         url=f"{settings.monitor_url}/{exp_route}/drift",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=attributes,
+        json=schemas.CreateDrift().load(attributes),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Drift(response.json())
 
 
 def get_drift(experiment, drift_id):
     """Get a drift run from the drift monitor server."""
-    exp_route = f"experiment/{experiment['id']}"
+    exp_route = f"experiment/{experiment.id}"
     response = requests.get(
         url=f"{settings.monitor_url}/{exp_route}/drift/{drift_id}",
         headers={"Authorization": f"Bearer {access_token()}"},
@@ -129,21 +135,21 @@ def get_drift(experiment, drift_id):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Drift(response.json())
 
 
-def put_drift(experiment, drift_id, attributes):
+def put_drift(experiment, drift):
     """Update a drift run on the drift monitor server."""
-    exp_route = f"experiment/{experiment['id']}"
+    exp_route = f"experiment/{experiment.id}"
     response = requests.put(
-        url=f"{settings.monitor_url}/{exp_route}/drift/{drift_id}",
+        url=f"{settings.monitor_url}/{exp_route}/drift/{drift.id}",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=attributes,
+        json=schemas.Drift().dump(drift),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.Drift(response.json())
 
 
 def delete_drift(experiment, drift_id):
@@ -156,7 +162,7 @@ def delete_drift(experiment, drift_id):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return None
 
 
 # Users: API Methods to list, register and update users.
@@ -173,7 +179,10 @@ def search_user(query, page=1, page_size=10):
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json(), response.headers["X-Pagination"]
+    return (
+        [models.User(data) for data in response.json()],
+        response.headers["X-Pagination"],
+    )
 
 
 def post_user():
@@ -185,7 +194,7 @@ def post_user():
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.User(response.json())
 
 
 def self_user():
@@ -197,7 +206,7 @@ def self_user():
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.User(response.json())
 
 
 def update_user():
@@ -209,4 +218,4 @@ def update_user():
         verify=not settings.TESTING,
     )
     response.raise_for_status()
-    return response.json()
+    return models.User(response.json())
