@@ -74,8 +74,10 @@ class DriftMonitor:
         _exc_value: Optional[BaseException],
         _traceback: Optional[Any],
     ) -> None:
-        if self._drift is None:
+        if self._experiment is None:
             raise RuntimeError("Drift monitor context not started.")
+        if self._drift is None:
+            raise RuntimeError("Drift removed while context active.")
         if exc_type:
             self._drift.job_status = "Failed"  # New status
             self._drift = queries.put_drift(self._experiment, self._drift)

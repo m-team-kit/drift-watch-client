@@ -1,9 +1,11 @@
 """Utility functions for drift monitor."""
 
+from typing import Any
+
 import numpy as np
 
 
-def convert_to_serializable(obj):
+def convert_to_serializable(obj: Any) -> dict[str, Any]:
     """Recursively convert objects to JSON serializable formats."""
     if isinstance(obj, dict):
         return {k: convert_to_serializable(v) for k, v in obj.items()}
