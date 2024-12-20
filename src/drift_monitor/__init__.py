@@ -2,8 +2,11 @@
 This package contains the client code for the drift monitor service.
 """
 
+from typing import Any, Dict, List, Optional
+
 import requests
-from drift_monitor import queries, utils
+
+from drift_monitor import models, queries, utils
 
 
 class DriftMonitor:
@@ -26,19 +29,28 @@ class DriftMonitor:
         ...    monitor(detected, detection_parameters)
     """
 
-    def __init__(self, experiment_name, model_id, tags=None):
-        self._experiment_name = experiment_name
-        self._experiment = None
+    def __init__(
+        self,
+        experiment_name: str,
+        model_id: str,
+        tags: Optional[List[str]] = None,
+    ):
+        self._experiment_name: str = experiment_name
+        self._experiment: models.Experiment | None = None
         self._attributes = {"model": model_id, "tags": tags or []}
-        self._drift = None
+        self._drift: models.Drift | None = None
 
-    def __enter__(self):
+    def __enter__(self) -> "DriftMonitor":
         self._experiment = find_experiment(self._experiment_name)
         attributes = {"job_status": "Running", **self._attributes}
         self._drift = queries.post_drift(self._experiment, attributes)
         return self
 
-    def __call__(self, detected, parameters):
+    def __call__(
+        self,
+        detected: bool,
+        parameters: Dict[str, Any],
+    ) -> None:
         """Prepare drift detection results for transmission to server.
 
         Args:
@@ -50,12 +62,20 @@ class DriftMonitor:
         """
         if self._experiment is None:
             raise RuntimeError("Drift monitor context not started.")
-        detected = bool(detected)  # Ensure correct serialization
+        if self._drift is None:
+            raise RuntimeError("Drift removed while context active.")
         parameters = utils.convert_to_serializable(parameters)
-        self._drift.drift_detected = bool(detected)
+        self._drift.drift_detected = bool(detected)  # Ensure serialization
         self._drift.parameters = parameters
 
-    def __exit__(self, exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        _exc_value: Optional[BaseException],
+        _traceback: Optional[Any],
+    ) -> None:
+        if self._drift is None:
+            raise RuntimeError("Drift monitor context not started.")
         if exc_type:
             self._drift.job_status = "Failed"  # New status
             self._drift = queries.put_drift(self._experiment, self._drift)
@@ -65,11 +85,18 @@ class DriftMonitor:
         self._experiment = None  # Reset drift object
 
 
-def register(accept_terms=False):
+def register(accept_terms: bool = False) -> None:
     """Registers the token user in the application database.
     By using this function, you accept that the user derived from the token
     will be registered in the application database and agree to the terms of
     service.
+
+    Args:
+        accept_terms (bool, optional): Whether to accept the terms of service.
+            Defaults to False.
+
+    Raises:
+        ValueError: If the user is already registered or terms are not accepted.
     """
     if not accept_terms:
         raise ValueError("You must accept the terms of service.")
@@ -82,7 +109,7 @@ def register(accept_terms=False):
         raise error
 
 
-def find_experiment(experiment_name):
+def find_experiment(experiment_name: str) -> models.Experiment:
     """Get an experiment from the drift monitor server.
 
     Args:
@@ -90,13 +117,23 @@ def find_experiment(experiment_name):
 
     Returns:
         dict: The experiment object or None if not found.
+
+    Raises:
+        ValueError: If the experiment is not found.
     """
     search_query = {"name": experiment_name}
     experiments, _ = queries.search_experiment(search_query)
-    return experiments[0] if experiments else None
+    if experiments is []:
+        raise ValueError("Experiment not found.")
+    return experiments[0]  # Return first result
 
 
-def new_experiment(name, description, public=False, permissions=None):
+def new_experiment(
+    name: str,
+    description: str,
+    public: bool = False,
+    permissions: Optional[Dict[str, Any]] = None,
+) -> models.Experiment:
     """Create a new experiment in the drift monitor service.
 
     Args:
