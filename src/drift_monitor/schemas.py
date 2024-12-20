@@ -102,7 +102,7 @@ class _BaseDriftJob(ma.Schema):
     job_status = ma.fields.String(required=True, validate=status_options)
     tags = ma.fields.List(tag, load_default=[])
     model = ma.fields.String(required=True)
-    drift_detected = ma.fields.Bool(required=True)
+    drift_detected = ma.fields.Bool(load_default=False)
     parameters = ma.fields.Dict(load_default={})
 
 
