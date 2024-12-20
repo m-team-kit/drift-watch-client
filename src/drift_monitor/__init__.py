@@ -3,7 +3,7 @@ This package contains the client code for the drift monitor service.
 """
 
 import requests
-from drift_monitor import queries, utils, schemas, models
+from drift_monitor import queries, utils
 
 
 class DriftMonitor:
@@ -116,7 +116,7 @@ def new_experiment(name, description, public=False, permissions=None):
                 "name": name,
                 "description": description,
                 "public": public,
-                "permissions": permissions if permissions else {},
+                "permissions": permissions if permissions else [],
             }
         )
     except requests.HTTPError as error:
