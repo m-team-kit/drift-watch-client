@@ -13,17 +13,8 @@ def monitor(request_mock, experiment_name, model_id):
 
 @pytest.mark.parametrize("experiment_name", ["experiment_1"])
 @pytest.mark.parametrize("model_id", ["some_model"])
-def test_concept_context(monitor):
+def test_context(monitor):
     """Test the method concept raises out of context error."""
     with pytest.raises(RuntimeError) as excinfo:
-        monitor.concept(True, {"threshold": 0.5})
-    assert str(excinfo.value) == "Drift monitor context not started."
-
-
-@pytest.mark.parametrize("experiment_name", ["experiment_1"])
-@pytest.mark.parametrize("model_id", ["some_model"])
-def test_data_context(monitor):
-    """Test the method concept raises out of context error."""
-    with pytest.raises(RuntimeError) as excinfo:
-        monitor.data(True, {"threshold": 0.5})
+        monitor(True, {"threshold": 0.5})
     assert str(excinfo.value) == "Drift monitor context not started."
