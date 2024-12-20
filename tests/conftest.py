@@ -27,7 +27,7 @@ def db_experiments():
 @fixture(scope="function")
 def db_drifts(experiment_name):
     """Load drifts from JSON file at tests/database."""
-    path = f"tests/database/test-drifts/{experiment_name}.json"
+    path = f"tests/database/{experiment_name}.json"
     return {drift["id"]: drift for drift in load_json(path)}
 
 
