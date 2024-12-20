@@ -52,15 +52,15 @@ class DriftMonitor:
             raise RuntimeError("Drift monitor context not started.")
         detected = bool(detected)  # Ensure correct serialization
         parameters = utils.convert_to_serializable(parameters)
-        self._drift["drift_detected"] = bool(detected)
-        self._drift["parameters"] = parameters
+        self._drift.drift_detected = bool(detected)
+        self._drift.parameters = parameters
 
     def __exit__(self, exc_type, _exc_value, _traceback):
         if exc_type:
-            self._drift["job_status"] = "Failed"  # New status
+            self._drift.job_status = "Failed"  # New status
             self._drift = queries.put_drift(self._experiment, self._drift)
         else:
-            self._drift["job_status"] = "Completed"
+            self._drift.job_status = "Completed"
             self._drift = queries.put_drift(self._experiment, self._drift)
         self._experiment = None  # Reset drift object
 
