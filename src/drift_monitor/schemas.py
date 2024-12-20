@@ -56,6 +56,10 @@ class CreateExperiment(_BaseExperiment, _BaseReqSchema):
     """Create Experiment Schema."""
 
 
+class UpdateExperiment(_BaseExperiment, _BaseReqSchema):
+    """Update Experiment Schema."""
+
+
 class User(_BaseRespSchema):
     """
     User represent a person that access and uses the API.
@@ -117,3 +121,7 @@ class Drift(_BaseDriftJob, _BaseRespSchema):
 
 class CreateDrift(_BaseDriftJob, _BaseReqSchema):
     """Create Job Schema for job."""
+
+
+class UpdateDrift(_BaseDriftJob, _BaseReqSchema):
+    """Update Job Schema for job."""

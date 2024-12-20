@@ -1,5 +1,9 @@
 """Query functions for drift watch server."""
 
+from typing import List
+from uuid import UUID
+
+import marshmallow as ma
 import requests
 
 from drift_monitor import models, schemas
@@ -8,7 +12,7 @@ from drift_monitor.config import access_token, settings
 # Entitlements: API Methods to list, entitlements.
 
 
-def get_entitlements():
+def get_entitlements() -> List[str]:
     """Get the entitlements of the token user."""
     response = requests.get(
         url=f"{settings.monitor_url}/entitlements",
@@ -40,7 +44,7 @@ def search_experiment(query, page=1, page_size=10):
     )
 
 
-def post_experiment(attributes):
+def post_experiment(attributes) -> models.Experiment:
     """Create a new experiment on the drift monitor server."""
     response = requests.post(
         url=f"{settings.monitor_url}/experiment",
@@ -53,7 +57,7 @@ def post_experiment(attributes):
     return models.Experiment(response.json())
 
 
-def get_experiment(experiment_id):
+def get_experiment(experiment_id: UUID) -> models.Experiment:
     """Get an experiment from the drift monitor server."""
     response = requests.get(
         url=f"{settings.monitor_url}/experiment/{experiment_id}",
@@ -65,12 +69,12 @@ def get_experiment(experiment_id):
     return models.Experiment(response.json())
 
 
-def put_experiment(experiment):
+def put_experiment(experiment: models.Experiment) -> models.Experiment:
     """Update an experiment on the drift monitor server."""
     response = requests.put(
         url=f"{settings.monitor_url}/experiment/{experiment.id}",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=schemas.Experiment().dump(experiment),
+        json=schemas.UpdateExperiment(unknown=ma.EXCLUDE).dump(experiment),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
@@ -78,7 +82,7 @@ def put_experiment(experiment):
     return models.Experiment(response.json())
 
 
-def delete_experiment(experiment_id):
+def delete_experiment(experiment_id: UUID) -> None:
     """Delete an experiment from the drift monitor server."""
     response = requests.delete(
         url=f"{settings.monitor_url}/experiment/{experiment_id}",
@@ -111,7 +115,7 @@ def search_drift(experiment, query, page=1, page_size=10):
     )
 
 
-def post_drift(experiment, attributes):
+def post_drift(experiment, attributes) -> models.Drift:
     """Create a new drift run on the drift monitor server."""
     exp_route = f"experiment/{experiment.id}"
     response = requests.post(
@@ -125,7 +129,7 @@ def post_drift(experiment, attributes):
     return models.Drift(response.json())
 
 
-def get_drift(experiment, drift_id):
+def get_drift(experiment, drift_id: UUID) -> models.Drift:
     """Get a drift run from the drift monitor server."""
     exp_route = f"experiment/{experiment.id}"
     response = requests.get(
@@ -138,13 +142,13 @@ def get_drift(experiment, drift_id):
     return models.Drift(response.json())
 
 
-def put_drift(experiment, drift):
+def put_drift(experiment, drift: models.Drift) -> models.Drift:
     """Update a drift run on the drift monitor server."""
     exp_route = f"experiment/{experiment.id}"
     response = requests.put(
         url=f"{settings.monitor_url}/{exp_route}/drift/{drift.id}",
         headers={"Authorization": f"Bearer {access_token()}"},
-        json=schemas.Drift().dump(drift),
+        json=schemas.UpdateDrift(unknown=ma.EXCLUDE).dump(drift),
         timeout=settings.DRIFT_MONITOR_TIMEOUT,
         verify=not settings.TESTING,
     )
@@ -152,7 +156,7 @@ def put_drift(experiment, drift):
     return models.Drift(response.json())
 
 
-def delete_drift(experiment, drift_id):
+def delete_drift(experiment, drift_id: UUID) -> None:
     """Delete a drift run from the drift monitor server."""
     exp_route = f"experiment/{experiment['id']}"
     response = requests.delete(
@@ -185,7 +189,7 @@ def search_user(query, page=1, page_size=10):
     )
 
 
-def post_user():
+def post_user() -> models.User:
     """Create a new user on the drift monitor server."""
     response = requests.post(
         url=f"{settings.monitor_url}/user",
@@ -197,7 +201,7 @@ def post_user():
     return models.User(response.json())
 
 
-def self_user():
+def self_user() -> models.User:
     """Get the token user from the drift monitor server."""
     response = requests.get(
         url=f"{settings.monitor_url}/user/self",
@@ -209,7 +213,7 @@ def self_user():
     return models.User(response.json())
 
 
-def update_user():
+def update_user() -> models.User:
     """Update the token user in the application database."""
     response = requests.put(
         url=f"{settings.monitor_url}/user/self",

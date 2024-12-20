@@ -2,13 +2,14 @@
 
 import dataclasses
 import uuid
+from abc import ABC
 
 import marshmallow as ma
 
 from drift_monitor import schemas
 
 
-class _BaseModel:  # pylint: disable=too-few-public-methods
+class _BaseModel(ABC):  # pylint: disable=too-few-public-methods
     id: uuid.UUID | None = None
     created_at: str | None = None
 
@@ -28,12 +29,11 @@ class Experiment(_BaseModel):
 
 
 @dataclasses.dataclass(init=False)
-class Drift:
+class Drift(_BaseModel):
     """Drift dataclass."""
 
     model: str
-    id: uuid.UUID | None = None
-    created_at: str | None = None
+    schema_version: str | None = None
     job_status: str = "Running"
     tags: list = dataclasses.field(default_factory=list)
     drift_detected: bool = False
@@ -45,7 +45,7 @@ class Drift:
 
 
 @dataclasses.dataclass(init=False)
-class User:
+class User(_BaseModel):
     """User dataclass."""
 
     subject: str
